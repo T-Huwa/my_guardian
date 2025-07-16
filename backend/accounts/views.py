@@ -337,7 +337,7 @@ def review_registration_request(request, request_id):
                         role='Station Manager',
                         region=registration_request.region,
                         station_id=station.station_id,
-                        password=registration_request.password,
+                        password="temp1234",
                         is_active=True,  # Activate the user immediately
                         is_active_user=True
                     )
@@ -347,7 +347,7 @@ def review_registration_request(request, request_id):
                     email_sent, email_result = email_service.send_welcome_email(
                         user_email=user.email,
                         user_name=user.full_name,
-                        password="Use the password you used when submitting the request"
+                        password="temp1234"
                     )
 
                     if not email_sent:

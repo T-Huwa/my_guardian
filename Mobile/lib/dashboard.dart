@@ -608,7 +608,7 @@ class _DashboardState extends State<Dashboard> with TickerProviderStateMixin {
               const SizedBox(height: 10),
 
               // Connection status
-              if (!deviceNotFound) ...[
+              if (deviceNotFound) ...[
                 const Icon(
                   Icons.bluetooth_connected_rounded,
                   size: 50,

@@ -76,11 +76,7 @@ class _RegisteredDeviceTileState extends State<RegisteredDeviceTile> {
                       color: Colors.red,
                     ),
                   ),
-                  subtitle: Text(
-                    "Proceed to Register new device ->",
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  trailing: Column(
+                  subtitle: Row(
                     children: [
                       ElevatedButton.icon(
                         icon: const Icon(Icons.arrow_forward),

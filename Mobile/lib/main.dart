@@ -21,7 +21,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize your auth service (load stored user/token)
-  await DjangoAuthService().initialize();
+  // await DjangoAuthService().initialize(); // Commented out - using PostgreAuth instead
   //await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }

@@ -27,15 +27,19 @@ class PostgreAuth {
   Future<void> initialize() async {
     try {
       await _connect();
+      print('PostgreAuth: Database connection successful');
     } catch (e) {
-      print('Database connection failed: $e');
+      print('PostgreAuth: Database connection failed: $e');
+      print('PostgreAuth: Continuing in offline mode...');
       // Even if DB connection fails, we should still load stored user
     }
 
     // Always try to load stored user, even if DB connection failed
     await _loadStoredUser();
-    print('Loaded user from storage: ${_currentUser != null ? 'Yes' : 'No'}');
-    print('Is authenticated: $isAuthenticated');
+    print(
+      'PostgreAuth: Loaded user from storage: ${_currentUser != null ? 'Yes' : 'No'}',
+    );
+    print('PostgreAuth: Is authenticated: $isAuthenticated');
   }
 
   Future<void> _connect() async {

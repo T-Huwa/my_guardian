@@ -80,9 +80,13 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkBackendAndAuth() async {
     try {
+      print('=== Starting authentication check ===');
+
       bool hasInternet = await _hasInternetConnection();
+      print('Internet connection: $hasInternet');
 
       if (!hasInternet) {
+        print('No internet connection detected');
         if (!mounted) return;
         Fluttertoast.showToast(
           msg: "No internet connection. Please check your connection.",
@@ -91,26 +95,46 @@ class _SplashScreenState extends State<SplashScreen>
         return;
       }
 
-      await DBService().connect();
+      print('Attempting to connect to database...');
+      try {
+        await DBService().connect();
+        print('Database connection successful');
+      } catch (dbError) {
+        print('Database connection failed: $dbError');
+        print('Continuing with offline mode...');
+      }
+
+      print('Initializing PostgreAuth...');
       await PostgreAuth().initialize();
+      print('PostgreAuth initialization complete');
+
       final isAuthenticated = PostgreAuth().isAuthenticated;
+      print('Authentication status: $isAuthenticated');
+
       await Future.delayed(const Duration(seconds: 2));
 
       if (!mounted) return;
-      Navigator.of(
-        context,
-      ).pushReplacementNamed(isAuthenticated ? '/home' : '/login');
-    } catch (e) {
+
+      final route = isAuthenticated ? '/home' : '/login';
+      print('Navigating to: $route');
+
+      Navigator.of(context).pushReplacementNamed(route);
+    } catch (e, stackTrace) {
       // Print detailed error information to debug console
-      print('Error in _checkBackendAndAuth: $e');
+      print('=== ERROR in _checkBackendAndAuth ===');
+      print('Error: $e');
       print('Error type: ${e.runtimeType}');
-      print('Stack trace: ${StackTrace.current}');
+      print('Stack trace: $stackTrace');
+      print('=====================================');
 
       if (!mounted) return;
       Fluttertoast.showToast(
-        msg: 'Something went wrong while checking authentication.',
+        msg: 'Failed to check authentication: ${e.toString()}',
         toastLength: Toast.LENGTH_LONG,
       );
+
+      // Navigate to login on error
+      Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 

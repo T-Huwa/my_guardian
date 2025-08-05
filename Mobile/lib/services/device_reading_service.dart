@@ -20,7 +20,15 @@ class DeviceReadingService {
   String? _deviceId;
 
   Future<void> init() async {
-    await _dbService.connect();
+    try {
+      await _dbService.connect();
+      debugPrint("DeviceReadingService: Database connection successful");
+    } catch (e) {
+      debugPrint("DeviceReadingService: Database connection failed: $e");
+      debugPrint("DeviceReadingService: Continuing without device readings...");
+      latestReading.value = null;
+      return;
+    }
 
     try {
       String? userId = await _getCurrentUserId();
@@ -62,12 +70,14 @@ class DeviceReadingService {
 
   Future<void> _fetchDeviceId(String userId) async {
     final conn = _dbService.conn;
-    final result = await conn.execute(
-      Sql.named(
-        "SELECT device_id FROM devices WHERE owner_id = @userId LIMIT 1;",
-      ),
-      parameters: {'userId': userId},
-    );
+    final result = await conn
+        .execute(
+          Sql.named(
+            "SELECT device_id FROM devices WHERE owner_id = @userId LIMIT 1;",
+          ),
+          parameters: {'userId': userId},
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (result.isNotEmpty) {
       _deviceId = result.first[0] as String;
@@ -80,15 +90,17 @@ class DeviceReadingService {
 
     try {
       // Fetch the latest 50 readings to get the most recent value for each field
-      final result = await conn.execute(
-        Sql.named('''
+      final result = await conn
+          .execute(
+            Sql.named('''
       SELECT * FROM device_readings
       WHERE device_id = @deviceId
       ORDER BY timestamp DESC
       LIMIT 50;
       '''),
-        parameters: {'deviceId': _deviceId},
-      );
+            parameters: {'deviceId': _deviceId},
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (result.isNotEmpty) {
         // Build composite reading with latest values for each field

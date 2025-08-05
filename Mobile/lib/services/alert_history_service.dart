@@ -60,12 +60,14 @@ class AlertHistoryService {
 
   Future<String?> _getUserDeviceId(String userId) async {
     final conn = _dbService.conn;
-    final result = await conn.execute(
-      Sql.named(
-        "SELECT device_id FROM devices WHERE owner_id = @userId LIMIT 1;",
-      ),
-      parameters: {'userId': userId},
-    );
+    final result = await conn
+        .execute(
+          Sql.named(
+            "SELECT device_id FROM devices WHERE owner_id = @userId LIMIT 1;",
+          ),
+          parameters: {'userId': userId},
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (result.isNotEmpty) {
       return result.first[0] as String;
@@ -79,15 +81,17 @@ class AlertHistoryService {
     try {
       // First, let's check what tables exist
       debugPrint("Checking available tables...");
-      final tablesResult = await conn.execute(
-        Sql.named('''
+      final tablesResult = await conn
+          .execute(
+            Sql.named('''
         SELECT table_name
         FROM information_schema.tables
         WHERE table_schema = 'public'
         AND table_name LIKE '%alert%'
         ORDER BY table_name;
         '''),
-      );
+          )
+          .timeout(const Duration(seconds: 30));
 
       debugPrint("Available alert-related tables:");
       for (final row in tablesResult) {
@@ -96,8 +100,9 @@ class AlertHistoryService {
 
       // Fetch emergency triggers for the user's device
       debugPrint("Fetching emergency triggers for device: $deviceId");
-      final result = await conn.execute(
-        Sql.named('''
+      final result = await conn
+          .execute(
+            Sql.named('''
         SELECT
           et.trigger_id,
           et.trigger_type,
@@ -119,8 +124,9 @@ class AlertHistoryService {
         ORDER BY et.triggered_at DESC
         LIMIT 50;
         '''),
-        parameters: {'deviceId': deviceId},
-      );
+            parameters: {'deviceId': deviceId},
+          )
+          .timeout(const Duration(seconds: 30));
 
       // Convert emergency triggers to alert-like format
       _alertHistory =
@@ -174,8 +180,9 @@ class AlertHistoryService {
 
     try {
       // Query to get alerts created by the user
-      final result = await conn.execute(
-        Sql.named('''
+      final result = await conn
+          .execute(
+            Sql.named('''
         SELECT
           a.id,
           a.title,
@@ -198,8 +205,9 @@ class AlertHistoryService {
         ORDER BY a.created_at DESC
         LIMIT 50;
         '''),
-        parameters: {'userId': userId},
-      );
+            parameters: {'userId': userId},
+          )
+          .timeout(const Duration(seconds: 30));
 
       _alertHistory = result.map((row) => row.toColumnMap()).toList();
       debugPrint("Fetched ${_alertHistory.length} user-created alerts");

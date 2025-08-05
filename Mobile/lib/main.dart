@@ -18,7 +18,7 @@ void main() async {
 
   //await DeviceReadingService().init();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize your auth service (load stored user/token)
   // await DjangoAuthService().initialize(); // Commented out - using PostgreAuth instead

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:my_guardian/services/db_controller.dart';
 //import 'package:my_guardian/auth/auth_service.dart';
 //import 'package:http/http.dart' as http;
 //import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -95,15 +94,6 @@ class _SplashScreenState extends State<SplashScreen>
         return;
       }
 
-      print('Attempting to connect to database...');
-      try {
-        await DBService().connect();
-        print('Database connection successful');
-      } catch (dbError) {
-        print('Database connection failed: $dbError');
-        print('Continuing with offline mode...');
-      }
-
       print('Initializing PostgreAuth...');
       await PostgreAuth().initialize();
       print('PostgreAuth initialization complete');
@@ -165,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen>
             ),
             const SizedBox(height: 20),
             const Text(
-              "My guardian +",
+              "MyGuardian+",
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

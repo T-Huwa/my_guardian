@@ -44,25 +44,29 @@ class PostgreAuth {
 
   Future<void> _connect() async {
     try {
-      final host = dotenv.env['DB_HOST']!;
-      final port = int.parse(dotenv.env['DB_PORT']!);
-      final database = dotenv.env['DB_NAME']!;
-      final username = dotenv.env['DB_USER']!;
-      final password = dotenv.env['DB_PASSWORD']!;
+      final uri = Uri.parse(dotenv.env['DATABASE_URL']!);
 
-      print('Connecting to: $host:$port');
-      print('Database: $database');
+      print('Connecting to: ${uri.host}:${uri.port}');
+      print('Database: ${uri.pathSegments.first}');
+      print('SSL Mode: ${uri.queryParameters['sslmode']}');
 
       _conn = await Connection.open(
         Endpoint(
-          host: host,
-          port: port,
-          database: database,
-          username: username,
-          password: password,
+          host: uri.host,
+          port: uri.port,
+          database: uri.pathSegments.first,
+          username: uri.userInfo.split(':').first,
+          password: uri.userInfo.split(':').last,
         ),
-        settings: ConnectionSettings(sslMode: SslMode.require),
-      ).timeout(const Duration(seconds: 10));
+        settings: ConnectionSettings(
+          sslMode:
+              uri.queryParameters['sslmode'] == 'require'
+                  ? SslMode.require
+                  : SslMode.disable,
+          connectTimeout: const Duration(seconds: 30),
+          queryTimeout: const Duration(seconds: 30),
+        ),
+      ).timeout(const Duration(seconds: 35));
 
       print('Database connection successful');
     } catch (e) {
@@ -114,10 +118,12 @@ class PostgreAuth {
       // Ensure connection is available before attempting login
       await _ensureConnection();
 
-      final result = await _conn!.execute(
-        Sql.named('SELECT * FROM users WHERE email = @email LIMIT 1'),
-        parameters: {'email': email},
-      );
+      final result = await _conn!
+          .execute(
+            Sql.named('SELECT * FROM users WHERE email = @email LIMIT 1'),
+            parameters: {'email': email},
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (result.isEmpty) {
         print('Login failed: User not found for email: $email');
@@ -175,8 +181,9 @@ class PostgreAuth {
       print('Generated employee ID: $employeeId');
       print('Generated badge number: $badgeNumber');
 
-      final row = await _conn!.execute(
-        Sql.named('''
+      final row = await _conn!
+          .execute(
+            Sql.named('''
           INSERT INTO users (
             id, email, password, phone_number, department, role,
             username, first_name, last_name, full_name,
@@ -195,23 +202,24 @@ class PostgreAuth {
             TRUE, @joined, @joined, @emp
           ) RETURNING *;
         '''),
-        parameters: {
-          'id': uuid,
-          'e': email,
-          'p': BCrypt.hashpw(password, BCrypt.gensalt()),
-          'pn': phoneNumber,
-          'dpt': dpt,
-          'u': username ?? email.split('@').first,
-          'fn': firstName ?? 'First',
-          'ln': lastName ?? 'Last',
-          'full': fullName,
-          'joined': now.toUtc(),
-          'badge': badgeNumber,
-          'role': role,
-          'emp': employeeId,
-          'rank': 'Default',
-        },
-      );
+            parameters: {
+              'id': uuid,
+              'e': email,
+              'p': BCrypt.hashpw(password, BCrypt.gensalt()),
+              'pn': phoneNumber,
+              'dpt': dpt,
+              'u': username ?? email.split('@').first,
+              'fn': firstName ?? 'First',
+              'ln': lastName ?? 'Last',
+              'full': fullName,
+              'joined': now.toUtc(),
+              'badge': badgeNumber,
+              'role': role,
+              'emp': employeeId,
+              'rank': 'Default',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
 
       final rowData = row.first.toColumnMap();
       _currentUser = rowData;

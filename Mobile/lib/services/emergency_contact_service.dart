@@ -80,8 +80,9 @@ class EmergencyContactService {
     final userId = _getCurrentUserId();
     final now = DateTime.now().toUtc();
 
-    final result = await _conn.execute(
-      Sql.named('''
+    final result = await _conn
+        .execute(
+          Sql.named('''
         INSERT INTO emergency_contacts (
           contact_id, user_id, name, phone_number, relation,
           preferred_method, created_at, updated_at
@@ -90,16 +91,17 @@ class EmergencyContactService {
           @preferredMethod, @now, @now
         ) RETURNING *;
       '''),
-      parameters: {
-        'contactId': const Uuid().v4(), // Use const Uuid().v4()
-        'userId': userId,
-        'name': name,
-        'phoneNumber': phoneNumber,
-        'relation': relation,
-        'preferredMethod': preferredMethod,
-        'now': now,
-      },
-    );
+          parameters: {
+            'contactId': const Uuid().v4(), // Use const Uuid().v4()
+            'userId': userId,
+            'name': name,
+            'phoneNumber': phoneNumber,
+            'relation': relation,
+            'preferredMethod': preferredMethod,
+            'now': now,
+          },
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (result.isEmpty) {
       throw Exception('Failed to create emergency contact.');
@@ -112,12 +114,14 @@ class EmergencyContactService {
   Future<List<EmergencyContact>> getContactsForCurrentUser() async {
     final userId = _getCurrentUserId();
 
-    final result = await _conn.execute(
-      Sql.named(
-        'SELECT * FROM emergency_contacts WHERE user_id = @userId ORDER BY created_at DESC',
-      ),
-      parameters: {'userId': userId},
-    );
+    final result = await _conn
+        .execute(
+          Sql.named(
+            'SELECT * FROM emergency_contacts WHERE user_id = @userId ORDER BY created_at DESC',
+          ),
+          parameters: {'userId': userId},
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (result.isEmpty) {
       return []; // Return an empty list if no contacts are found
@@ -178,10 +182,9 @@ class EmergencyContactService {
       RETURNING *;
     ''';
 
-    final result = await _conn.execute(
-      Sql.named(query),
-      parameters: parameters,
-    );
+    final result = await _conn
+        .execute(Sql.named(query), parameters: parameters)
+        .timeout(const Duration(seconds: 30));
 
     if (result.isEmpty) {
       throw Exception(
@@ -197,12 +200,14 @@ class EmergencyContactService {
   Future<void> deleteContact({required String contactId}) async {
     final userId = _getCurrentUserId();
 
-    final result = await _conn.execute(
-      Sql.named(
-        'DELETE FROM emergency_contacts WHERE contact_id = @contactId AND user_id = @userId',
-      ),
-      parameters: {'contactId': contactId, 'userId': userId},
-    );
+    final result = await _conn
+        .execute(
+          Sql.named(
+            'DELETE FROM emergency_contacts WHERE contact_id = @contactId AND user_id = @userId',
+          ),
+          parameters: {'contactId': contactId, 'userId': userId},
+        )
+        .timeout(const Duration(seconds: 30));
 
     // The affectedRows property tells us if a row was actually deleted.
     if (result.affectedRows == 0) {

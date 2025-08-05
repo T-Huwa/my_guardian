@@ -29,8 +29,9 @@ class DBService {
                   ? SslMode.require
                   : SslMode.disable,
           connectTimeout: const Duration(seconds: 30),
+          queryTimeout: const Duration(seconds: 30),
         ),
-      );
+      ).timeout(const Duration(seconds: 35));
       print('Database connection successful');
     } catch (e) {
       print('Database connection failed: $e');

@@ -32,12 +32,14 @@ class _RegisteredDeviceTileState extends State<RegisteredDeviceTile> {
 
       await DBService().connect(); // Ensures cached singleton connection
 
-      final result = await DBService().conn.execute(
-        Sql.named(
-          'SELECT device_type, mac_address FROM devices WHERE owner_id = @owner LIMIT 1',
-        ),
-        parameters: {'owner': currentUser['id']},
-      );
+      final result = await DBService().conn
+          .execute(
+            Sql.named(
+              'SELECT device_type, mac_address FROM devices WHERE owner_id = @owner LIMIT 1',
+            ),
+            parameters: {'owner': currentUser['id']},
+          )
+          .timeout(const Duration(seconds: 30));
 
       print('📦 Device query result: $result');
 
@@ -85,10 +87,14 @@ class _RegisteredDeviceTileState extends State<RegisteredDeviceTile> {
                           Navigator.of(context).pushNamed('/scan_device');
                         },
                       ),
+                      const SizedBox(width: 10),
                       ElevatedButton.icon(
                         icon: const Icon(Icons.refresh),
                         label: const Text("Refresh"),
-                        onPressed: _fetchDevice,
+                        onPressed: () {
+                          setState(() => _loading = true);
+                          _fetchDevice();
+                        },
                       ),
                     ],
                   ),

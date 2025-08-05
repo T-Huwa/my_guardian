@@ -161,7 +161,7 @@ class _SplashScreenState extends State<SplashScreen>
             const Text(
               "MyGuardian+",
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

@@ -65,7 +65,7 @@ class _BluetoothScanWidgetState extends State<BluetoothScanWidget> {
   Future<void> _checkBluetoothState() async {
     try {
       print('🔧 BluetoothScanWidget: Checking initial Bluetooth state...');
-      final state = await _bt.adapterState.first;
+      final BluetoothAdapterState state = await _bt.adapterState.first;
       print('🔧 BluetoothScanWidget: Initial Bluetooth state: $state');
       if (mounted) {
         setState(() {
@@ -91,57 +91,32 @@ class _BluetoothScanWidgetState extends State<BluetoothScanWidget> {
     }
 
     print("Adapter State:");
-    //print(BluetoothAdapterState.on);
+    print(_bluetoothState);
 
-    if (_bluetoothState == BluetoothAdapterState.off) {
+    if (_bluetoothState == BluetoothAdapterState.off ||
+        _bluetoothState == BluetoothAdapterState.unknown) {
       print('⚠️ BluetoothScanWidget: Bluetooth is off, prompting user...');
-      final shouldEnable = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Bluetooth Required'),
-            content: const Text(
-              'Bluetooth is currently turned off. Would you like to enable it to scan for devices?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Enable Bluetooth'),
-              ),
-            ],
+      try {
+        print('🔧 BluetoothScanWidget: Attempting to turn on Bluetooth...');
+        _bt.turnOn();
+        // Wait a bit for the adapter to turn on
+        await Future.delayed(const Duration(seconds: 5));
+        await _checkBluetoothState();
+        final enabled = _bluetoothState == BluetoothAdapterState.on;
+        print('🔧 BluetoothScanWidget: Bluetooth enabled: $enabled');
+        return enabled;
+      } catch (e) {
+        print('❌ BluetoothScanWidget: Failed to enable Bluetooth: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to enable Bluetooth: $e')),
           );
-        },
-      );
-
-      if (shouldEnable == true) {
-        try {
-          print('🔧 BluetoothScanWidget: Attempting to turn on Bluetooth...');
-          _bt.turnOn();
-          // Wait a bit for the adapter to turn on
-          await Future.delayed(const Duration(seconds: 2));
-          await _checkBluetoothState();
-          final enabled = _bluetoothState == BluetoothAdapterState.on;
-          print('🔧 BluetoothScanWidget: Bluetooth enabled: $enabled');
-          return enabled;
-        } catch (e) {
-          print('❌ BluetoothScanWidget: Failed to enable Bluetooth: $e');
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Failed to enable Bluetooth: $e')),
-            );
-          }
-          return false;
         }
-      } else {
-        print('❌ BluetoothScanWidget: User cancelled Bluetooth enable');
+        return false;
       }
     }
 
-    return false;
+    return true;
   }
 
   Future<void> _scan() async {
@@ -152,7 +127,7 @@ class _BluetoothScanWidgetState extends State<BluetoothScanWidget> {
     }
 
     // Check and enable Bluetooth if needed
-    if (await _ensureBluetoothEnabled()) {
+    if (!await _ensureBluetoothEnabled()) {
       print('❌ BluetoothScanWidget: Bluetooth not enabled');
       return;
     }

@@ -91,7 +91,11 @@ class _SplashScreenState extends State<SplashScreen>
           msg: "No internet connection. Please check your connection.",
           toastLength: Toast.LENGTH_LONG,
         );
+        await Future.delayed(const Duration(seconds: 3));
+        if (!mounted) return;
+        Navigator.of(context).pushReplacementNamed('/login');
         return;
+        //return;
       }
 
       print('Initializing PostgreAuth...');

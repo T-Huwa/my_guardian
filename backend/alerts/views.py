@@ -15,6 +15,7 @@ class AlertListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
 
+        #queryset = Alert.objects.all()
         # Role-based alert filtering
         if user.role == 'Admin':
             # Admins can see all alerts
@@ -38,7 +39,7 @@ class AlertListCreateView(generics.ListCreateAPIView):
                 queryset = Alert.objects.filter(department=user.department)
         else:
             # Default: no alerts for unknown roles
-            queryset = Alert.objects.none()
+            queryset = Alert.objects.all()
 
         # Filter by status if provided
         status_filter = self.request.query_params.get('status', None)

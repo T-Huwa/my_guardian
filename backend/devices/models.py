@@ -89,12 +89,14 @@ class Device(models.Model):
 class DeviceReading(models.Model):
     """Sensor readings from devices"""
     READING_TYPE_CHOICES = [
+        ('sensor', 'Sensor Reading'),
         ('audio', 'Audio Analysis'),
         ('heart_rate', 'Heart Rate'),
         ('temperature', 'Temperature'),
         ('smoke', 'Smoke Detection'),
         ('location', 'Location Update'),
         ('battery', 'Battery Status'),
+        ('emergency', 'Emergency Button'),
     ]
     
     reading_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

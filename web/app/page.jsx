@@ -47,12 +47,18 @@ export default function LoginPage() {
       console.log("Response headers:", response.headers);
 
       const data = await response.json();
-      console.log("Response data:", data);
+      console.log("Department:", data.user.department);
+
+      // medical
+      // police
+      // fire
+      // admin
 
       if (response.ok) {
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("dpt", data.user.department);
         router.push("/dashboard");
       } else {
         setError(data.detail || data.non_field_errors?.[0] || "Login failed");

@@ -70,7 +70,7 @@ export default function CreateDistrictPage() {
           }),
         }
       );
-      console.log(await response.json());
+      //console.log(await response.json());
 
       if (response.ok) {
         router.push("/dashboard/regional");

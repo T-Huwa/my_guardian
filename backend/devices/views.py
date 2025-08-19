@@ -318,15 +318,18 @@ class EmergencyTriggerListView(generics.ListAPIView):
     serializer_class = EmergencyTriggerSerializer
     permission_classes = [IsAuthenticated]
     
+    
     def get_queryset(self):
         user = self.request.user
         if user.role == 'System Administrator':
             return EmergencyTrigger.objects.all()
         
+        return EmergencyTrigger.objects.all()
+        
         # Filter by department - need to get alerts and check department
-        return EmergencyTrigger.objects.filter(
-            alert_created_id__isnull=False
-        ).select_related('device')
+        # return EmergencyTrigger.objects.filter(
+        #     alert_created_id__isnull=False
+        # ).select_related('device')
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -216,7 +216,7 @@ export default function DashboardLayout({ children, user }) {
     </div>
   );
 
-  console.log(localStorage.getItem("user"));
+  //console.log(localStorage.getItem("user"));
 
   return (
     <div className="flex h-screen bg-background">

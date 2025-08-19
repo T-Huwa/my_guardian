@@ -15,31 +15,33 @@ class AlertListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
 
+        queryset = Alert.objects.all()
+
         #queryset = Alert.objects.all()
         # Role-based alert filtering
-        if user.role == 'Admin':
-            # Admins can see all alerts
-            queryset = Alert.objects.all()
-        elif user.role == 'Station Manager':
-            # Station managers can see alerts assigned to their station or in their department/region
-            if user.station_id:
-                queryset = Alert.objects.filter(
-                    models.Q(assigned_station_id=user.station_id) |
-                    models.Q(department=user.department)
-                )
-            else:
-                # If no station assigned, show alerts in their department/region
-                queryset = Alert.objects.filter(department=user.department)
-        elif user.role == 'Field Officer':
-            # Field officers can only see alerts assigned to their station
-            if user.station_id:
-                queryset = Alert.objects.filter(assigned_station_id=user.station_id)
-            else:
-                # If no station assigned, show alerts in their department
-                queryset = Alert.objects.filter(department=user.department)
-        else:
-            # Default: no alerts for unknown roles
-            queryset = Alert.objects.all()
+        # if user.role == 'Admin':
+        #     # Admins can see all alerts
+        #     queryset = Alert.objects.all()
+        # elif user.role == 'Station Manager':
+        #     # Station managers can see alerts assigned to their station or in their department/region
+        #     if user.station_id:
+        #         queryset = Alert.objects.filter(
+        #             models.Q(assigned_station_id=user.station_id) |
+        #             models.Q(department=user.department)
+        #         )
+        #     else:
+        #         # If no station assigned, show alerts in their department/region
+        #         queryset = Alert.objects.filter(department=user.department)
+        # elif user.role == 'Field Officer':
+        #     # Field officers can only see alerts assigned to their station
+        #     if user.station_id:
+        #         queryset = Alert.objects.filter(assigned_station_id=user.station_id)
+        #     else:
+        #         # If no station assigned, show alerts in their department
+        #         queryset = Alert.objects.filter(department=user.department)
+        # else:
+        #     # Default: no alerts for unknown roles
+        #     queryset = Alert.objects.all()
 
         # Filter by status if provided
         status_filter = self.request.query_params.get('status', None)
